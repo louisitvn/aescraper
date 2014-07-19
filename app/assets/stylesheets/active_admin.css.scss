@@ -15,3 +15,15 @@
 // For example, to change the default status-tag color:
 //
 //   .status_tag { background: #6090DB; }
+
+.running {
+  background-color: green;
+}
+
+.done {
+  background-color: #eeeeee;
+}
+
+.stopped {
+  background-color: red;
+}

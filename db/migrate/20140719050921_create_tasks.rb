@@ -1,7 +1,6 @@
 class CreateTasks < ActiveRecord::Migration
   def change
     create_table :tasks do |t|
-      t.string :url
       t.string :pid
       t.string :status
       t.string :scraping_date

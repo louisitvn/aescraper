@@ -11,6 +11,10 @@ parser = OptionParser.new("", 24) do |opts|
     $options[:url] = v
   end
 
+  opts.on("-t", "--task ID", "") do |v|
+    $options[:task] = v
+  end
+
   opts.on_tail('-h', '--help', 'Displays this help') do
 		puts opts, "", help
     exit
@@ -58,12 +62,17 @@ begin
 rescue SystemExit => ex
   exit
 rescue Exception => ex
-  puts "\nERROR: #{ex.message}\n\nRun ruby crawler.rb -h for help\n\n"
+  # puts "\nERROR: #{ex.message}\n\nRun ruby crawler.rb -h for help\n\n"
   exit
 end
 
 if $options[:url].nil?
-  puts "\nPlease specify URL: -u\n\n"
+  # puts "\nPlease specify URL: -u\n\n"
+  exit
+end
+
+if $options[:task].nil?
+  # puts "\nPlease specify task: -t\n\n"
   exit
 end
 
@@ -81,6 +90,16 @@ ActiveRecord::Base.establish_connection(
 
 class Item < ActiveRecord::Base
 end
+
+class Task < ActiveRecord::Base
+  RUNNING = 'running'
+  DEAD = 'dead'
+  DONE = 'done'
+  STOPPED = 'stopped'
+  FAILED = 'failed'
+end
+
+$task = Task.find($options[:task])
 
 class Proxy < ActiveRecord::Base
   scope :alive, -> { where(status: 'alive') }
@@ -115,9 +134,7 @@ Mechanize.class_eval do
   #def load_proxies(path)
     #@proxies = IO.read(path).strip.split("\n").select{|line| line[/^\s*#/].nil? }.map{|i| i.split(":").map{|e| e.strip}  }.select{|i| i.count == 4}
   def load_proxies
-    @proxies = Proxy.alive.to_array
-    p @proxies
-    
+    @proxies = Proxy.alive.to_array    
     @proxy_errors = {}
     @proxies.each do |i|
       @proxy_errors[i[0]] = 0
@@ -142,9 +159,9 @@ Mechanize.class_eval do
   def switch_proxy!
     set_proxy(*next_proxy)
     if @proxy_addr.nil?
-      puts "Direct connection"
+      # puts "Direct connection"
     else
-      puts "-- Using proxy #{proxy.values.join(':')}"
+      # puts "-- Using proxy #{proxy.values.join(':')}"
     end
   end
 
@@ -167,7 +184,7 @@ Mechanize.class_eval do
     pr = Proxy.find_by(ip: @proxy_addr)
     pr.mark_as_dead!
 
-    puts "-- Proxy #{proxy.values.join(':')} does not work"
+    # puts "-- Proxy #{proxy.values.join(':')} does not work"
     switch_proxy!
   end
 
@@ -211,11 +228,10 @@ class Scrape
     count = 0
     loop do
       count += 1
-      puts count
       ps = @a.try do |scr|
         scr.get(current_url).parser
       end
-
+      $task.update_attributes(progress: "Scraping #{count}")
       item_urls = ps.css('#ResultSetItems > table div.ittl h3 a').map{|a| a.attributes['href'].value }
       if item_urls.empty?
         item_urls = ps.css('table.fgdt div.ititle h3 > a.vip').map{|a| a.attributes['href'].value }
@@ -239,11 +255,9 @@ class Scrape
   end
 
   def get(url)
-    puts url
-
     if Item.exists?(url: url)
-      puts "Already scraped"
-      puts "--------------------------------------"
+      # puts "Already scraped"
+      # puts "--------------------------------------"
       return
     end
 
@@ -271,6 +285,12 @@ end
 trap("SIGINT") { throw :ctrl_c }
 
 catch :ctrl_c do
-  e = Scrape.new
-  e.run($options[:url])
+  begin
+    $task.update_attributes(status: Task::RUNNING, progress: 'Starting...')
+    e = Scrape.new
+    e.run($options[:url])
+    $task.update_attributes(status: Task::DONE, progress: '100%')
+  rescue Exception => ex
+    $task.update_attributes(status: Task::FAILED, progress: ex.message)
+  end
 end

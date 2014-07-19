@@ -2,21 +2,22 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: 5
+  database: delfd2f62lj1or
+  host: localhost
+  username: postgres
+  password: postgres
+  port: 5432
+
+# host: ec2-54-225-101-199.compute-1.amazonaws.com
+# username: zqmbxcvsczcevh
+# password: JVMMgQJy0zHYY1dK8x_uW-dbJp
 
 development:
   <<: *default
-  database: delfd2f62lj1or
-  username: zqmbxcvsczcevh
-  password: JVMMgQJy0zHYY1dK8x_uW-dbJp
-  host: ec2-54-225-101-199.compute-1.amazonaws.com
-  port: 5432
+
 test:
   <<: *default
   database: aescraper_test
 production:
   <<: *default
-  database: delfd2f62lj1or
-  username: zqmbxcvsczcevh
-  password: JVMMgQJy0zHYY1dK8x_uW-dbJp
-  host: ec2-54-225-101-199.compute-1.amazonaws.com
-  port: 5432
+

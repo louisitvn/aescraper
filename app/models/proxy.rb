@@ -6,7 +6,8 @@ class Proxy < ActiveRecord::Base
   scope :dead, -> { where(status: DEAD) }
 
 
-
+  validates :username, presence: true
+  validates :password, presence: true
   validates :ip, format: { with: /\A(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\Z/, message: "invalid IP address" }, uniqueness: true
   validates :port, numericality: { only_integer: true }
 
