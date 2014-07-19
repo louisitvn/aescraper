@@ -4,8 +4,12 @@ class CreateTasks < ActiveRecord::Migration
       t.string :url
       t.string :pid
       t.string :status
+      t.string :scraping_date
+      t.string :progress
 
       t.timestamps
     end
+
+    add_reference :tasks, :category, index: true
   end
 end
