@@ -38,3 +38,11 @@ gem 'spring',        group: :development
 # Use debugger
 # gem 'debugger', group: [:development, :test]
 
+gem 'activeadmin', github: 'gregbell/active_admin'
+gem 'therubyracer'
+gem 'execjs'
+gem 'devise'
+gem 'mechanize'
+gem 'spreadsheet'
+gem 'will_paginate'
+gem 'thin'
