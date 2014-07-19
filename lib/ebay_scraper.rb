@@ -1,5 +1,4 @@
 require 'optparse'
-require 'sqlite3'
 require 'rubygems'
 require 'active_record'
 require 'mechanize'
@@ -8,24 +7,8 @@ $options = {}
 parser = OptionParser.new("", 24) do |opts|
   opts.banner = "\nScraper 1.0\nAuthor: Louis (Skype: louisprm)\n\n"
 
-  opts.on("-o", "--output SQLITE3DB", "Output SQLite3 database file") do |v|
-    $options[:output] = v
-  end
-
   opts.on("-u", "--url URL", "") do |v|
     $options[:url] = v
-  end
-
-  opts.on("-m", "--min SALE", "") do |v|
-    $options[:min] = v
-  end
-
-  opts.on("-x", "--max SALE", "") do |v|
-    $options[:man] = v
-  end
-
-  opts.on("-p", "--proxy FILE", "") do |v|
-    $options[:proxy] = v
   end
 
   opts.on_tail('-h', '--help', 'Displays this help') do
@@ -79,43 +62,38 @@ rescue Exception => ex
   exit
 end
 
-if $options[:output].nil?
-  puts "\nPlease specify output file: -o\n\n"
-  exit
-end
-
 if $options[:url].nil?
   puts "\nPlease specify URL: -u\n\n"
   exit
 end
 
-if $options[:url].nil?
-  puts "\nPlease specify URL: -u\n\n"
-  exit
-end
-
-if $options[:proxy] && !File.exists?($options[:proxy])
-  puts "\nProxy file #{$options[:proxy]} does not exist\n\n"
-  exit
-end
-
-$options[:min] ||= 0.0
-$options[:max] ||= 999999999.9
-$options[:min] = $options[:min].to_f
-$options[:max] = $options[:max].to_f
+uri = URI.parse(ENV["DATABASE_URL"])
 
 ActiveRecord::Base.establish_connection(
-  adapter: 'sqlite3',
-  database: $options[:output],
+  adapter: 'postgresql',
+  database: uri.path.gsub(/^\//, ""),
+  username: uri.user,
+  password: uri.password,
+  port: uri.port,
+  host: uri.host,
   timeout: 15000
 )
 
 class Item < ActiveRecord::Base
-  
 end
 
 class Proxy < ActiveRecord::Base
-  
+  scope :alive, -> { where(status: 'alive') }
+  scope :dead, -> { where(status: 'dead') }
+
+  def mark_as_dead!
+    self.status = 'dead'
+    self.save!
+  end
+
+  def self.to_array
+    self.all.map{|e| [e.ip, e.port, e.username, e.password]}
+  end
 end
 
 
@@ -127,7 +105,7 @@ Mechanize.class_eval do
         r = yield(self)
         switch_proxy!
         return r
-      rescue Exception => ex
+      rescue Exception => ex # cần làm rõ do Exception nào mà mark-proxy-as-dead, có thể có tr hợp lỗi do website
         log_proxy_error!
       end
     end
@@ -137,8 +115,9 @@ Mechanize.class_eval do
   #def load_proxies(path)
     #@proxies = IO.read(path).strip.split("\n").select{|line| line[/^\s*#/].nil? }.map{|i| i.split(":").map{|e| e.strip}  }.select{|i| i.count == 4}
   def load_proxies
-    @proxies = Proxy.as_array
-
+    @proxies = Proxy.alive.to_array
+    p @proxies
+    
     @proxy_errors = {}
     @proxies.each do |i|
       @proxy_errors[i[0]] = 0
@@ -162,7 +141,11 @@ Mechanize.class_eval do
   
   def switch_proxy!
     set_proxy(*next_proxy)
-    puts "-- Using proxy #{proxy.values.join(':')}"
+    if @proxy_addr.nil?
+      puts "Direct connection"
+    else
+      puts "-- Using proxy #{proxy.values.join(':')}"
+    end
   end
 
   def switch_user_agent!
@@ -216,18 +199,11 @@ Mechanize.class_eval do
   end
 end
 
-# initiate the database if not existed
-MySchema.new.migrate(:change) unless File.exists?($options[:output])
-
 class Scrape
-  SITE = 'http://www.boohoo.com/'
-
   def initialize
     @a = Mechanize.new
     @a.user_agent_alias = 'Linux Firefox'
-    if $options[:proxy]
-      @a.load_proxies($options[:proxy]) 
-    end
+    @a.load_proxies
   end
 
   def run(url)
@@ -281,37 +257,13 @@ class Scrape
 
     if ps.css('#itemTitle').first
       item.name = ps.css('#itemTitle').first.xpath('text()').text
-      item.number_of_sales = ps.css('span.qtyTxt > span > a').first.text.gsub(/[^0-9]/, '').to_i if ps.css('span.qtyTxt > span > a').first
       item.price = ps.css('#mm-saleDscPrc').first.text.gsub(/[^0-9\.]/, '') if ps.css('#mm-saleDscPrc').first
       item.price = ps.css('#prcIsum').first.text.gsub(/[^0-9\.]/, '') if ps.css('#prcIsum').first
     elsif ps.css('div').empty?
       item.name = 'something-wrong'
     end
-
-    unless item.ok?
-      item.is_valid = "false"
-      item.save
-      puts "Empty PRICE or SALES"
-      puts "--------------------------------------"
-      return
-    end
     
-    item.compute_total_sales!
-    puts "Price: " + item.price.to_s
-    puts "Sales: " + item.number_of_sales.to_s
-    puts "Total Sales: " + item.total_sales.to_s
-    
-    if ($options[:min]..$options[:max]) === item.total_sales
-      item.is_valid = "true"
-      item.save
-      puts "Item save!"
-      puts "--------------------------------------"
-    else
-      item.is_valid = "false"
-      item.save
-      puts "Total sale out-of-range"
-      puts "--------------------------------------"
-    end
+    item.save
   end
 end
 

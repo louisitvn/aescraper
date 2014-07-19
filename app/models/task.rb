@@ -1,8 +1,9 @@
 class Task < ActiveRecord::Base
   PATH = File.join(Rails.root, 'lib/ebay_scraper.rb')
+
   def running?
     begin
-      Process.kill(0, self.pid)
+      Process.kill(0, self.pid.to_i)
       return true
     rescue
       return false
@@ -22,7 +23,7 @@ class Task < ActiveRecord::Base
   end
 
   def kill
-    Process.kill 9, self.pid
+    Process.kill 9, self.pid.to_i
   end
 
   private
@@ -30,7 +31,7 @@ class Task < ActiveRecord::Base
     if self.running?
       # already running
     else
-      process = IO.popen("ruby #{PATH}")
+      process = IO.popen("ruby #{PATH} -u \"#{self.url}\"")
       Process.detach(process.pid)
       self.pid = process.pid
       self.save
