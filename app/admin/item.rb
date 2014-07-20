@@ -13,5 +13,17 @@ ActiveAdmin.register Item do
   #  permitted << :other if resource.something?
   #  permitted
   # end
-  
+
+  index do 
+    selectable_column
+    column :name
+    column :url
+    
+    Item.select(:price).map(&:price).inject([]){|a, k| a += k.keys }.uniq.each do |scraping_date|
+      column scraping_date, class: 'text-right' do |r|
+        number_to_currency r.price[scraping_date]
+      end
+    end
+    
+  end
 end

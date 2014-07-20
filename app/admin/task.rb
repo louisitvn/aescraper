@@ -16,7 +16,7 @@ ActiveAdmin.register Task do
 
   form do |f|
     f.inputs Task.model_name.human do 
-      f.input :category_id, as: :select, collection: options_for_select(Category.all.map{|c| ["#{c.name} - #{c.url}", c.id] } )
+      f.input :category_id, as: :select, collection: Category.all.map{|c| [c.name, c.id] }
       f.input :scraping_date, as: :datepicker
       f.actions
     end

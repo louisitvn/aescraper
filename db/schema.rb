@@ -57,13 +57,15 @@ ActiveRecord::Schema.define(version: 20140719132151) do
   end
 
   create_table "items", force: true do |t|
-    t.string   "url"
+    t.text     "url"
     t.string   "number"
     t.string   "name"
-    t.float    "price"
+    t.text     "price"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "items", ["url"], name: "index_items_on_url", using: :btree
 
   create_table "proxies", force: true do |t|
     t.string   "ip"

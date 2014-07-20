@@ -4,13 +4,19 @@ class Task < ActiveRecord::Base
   validates :category_id, presence: true
   validates :scraping_date, presence: true
   
+  NEW = 'new'
   RUNNING = 'running'
-  DEAD = 'dead'
   DONE = 'done'
   STOPPED = 'stopped'
   FAILED = 'failed'
 
   PATH = File.join(Rails.root, 'lib/ebay_scraper.rb')
+
+  before_create :set_status
+
+  def set_status
+    self.status = NEW
+  end
 
   def running?
     return false unless self.pid

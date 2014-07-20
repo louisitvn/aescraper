@@ -1,3 +1,5 @@
+# export DATABASE_URL="postgres://postgres:postgres@localhost:5432/delfd2f62lj1or"
+
 require 'optparse'
 require 'rubygems'
 require 'active_record'
@@ -89,6 +91,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 class Item < ActiveRecord::Base
+  serialize :price, JSON
 end
 
 class Task < ActiveRecord::Base
@@ -255,10 +258,18 @@ class Scrape
   end
 
   def get(url)
-    if Item.exists?(url: url)
+    item = Item.where(url: url).first
+    if item && item.price && item.price[$task.scraping_date]
       # puts "Already scraped"
       # puts "--------------------------------------"
       return
+    end
+
+    if item
+      
+    else
+      item = Item.new
+      item.price = {}
     end
 
     resp = @a.try do |scr|
@@ -266,13 +277,13 @@ class Scrape
     end
 
     ps = resp.parser
-    item = Item.new
+
     item.url = url
 
     if ps.css('#itemTitle').first
       item.name = ps.css('#itemTitle').first.xpath('text()').text
-      item.price = ps.css('#mm-saleDscPrc').first.text.gsub(/[^0-9\.]/, '') if ps.css('#mm-saleDscPrc').first
-      item.price = ps.css('#prcIsum').first.text.gsub(/[^0-9\.]/, '') if ps.css('#prcIsum').first
+      item.price[$task.scraping_date] = ps.css('#mm-saleDscPrc').first.text.gsub(/[^0-9\.]/, '') if ps.css('#mm-saleDscPrc').first
+      item.price[$task.scraping_date] = ps.css('#prcIsum').first.text.gsub(/[^0-9\.]/, '') if ps.css('#prcIsum').first
     elsif ps.css('div').empty?
       item.name = 'something-wrong'
     end

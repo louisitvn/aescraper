@@ -21,9 +21,17 @@
 }
 
 .done {
-  background-color: #eeeeee;
+  background-color: #bbbbbb;
+}
+
+.new {
+  background-color: blue;
 }
 
 .stopped {
   background-color: red;
+}
+
+td.col.text-right {
+  text-align: right;
 }
