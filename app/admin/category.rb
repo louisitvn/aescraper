@@ -13,5 +13,14 @@ ActiveAdmin.register Category do
   #  permitted << :other if resource.something?
   #  permitted
   # end
+
+  index do 
+    selectable_column
+    column :name
+    column :url do |r|
+      link_to r.url, r.url
+    end
+    column :created_at
+  end
   
 end

@@ -17,6 +17,15 @@ ActiveAdmin.register Proxy do
     
   end
 
+  index do 
+    selectable_column
+    column :ip
+    column :port
+    column :username
+    column :password
+    column :created_at
+  end
+
   collection_action :do_import, :method => :post do
     done, failed = Proxy.import(params[:proxies])
     redirect_to admin_proxies_path, :notice => "#{done.count} proxies imported, #{failed.count} failed"
