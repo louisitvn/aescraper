@@ -16,6 +16,15 @@ ActiveAdmin.register Proxy do
   collection_action :import, :method => :get do
     
   end
+  
+  controller do 
+    def create
+      # do not go to the VIEW page after create
+      create! do |format|
+        format.html { redirect_to admin_proxies_path }
+      end
+    end
+  end  
 
   index do 
     selectable_column

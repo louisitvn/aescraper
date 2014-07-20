@@ -22,6 +22,15 @@ ActiveAdmin.register Task do
     end
   end
 
+  controller do 
+    def create
+      # do not go to the VIEW page after create
+      create! do |format|
+        format.html { redirect_to admin_tasks_path }
+      end
+    end
+  end  
+
   member_action :stop, :method => :get do
     t = Task.find(params[:id])
     t.stop!

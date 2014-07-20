@@ -22,5 +22,14 @@ ActiveAdmin.register Category do
     end
     column :created_at
   end
+
+  controller do 
+    def create
+      # do not go to the VIEW page after create
+      create! do |format|
+        format.html { redirect_to admin_categories_path }
+      end
+    end
+  end  
   
 end
