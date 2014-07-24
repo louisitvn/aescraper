@@ -24,6 +24,40 @@ ActiveAdmin.register Item do
         number_to_currency r.price[scraping_date]
       end
     end
+  end
+
+  
+  filter :url
+  filter :name
+  filter :by_name_in, label: "Exact name(s) (separated by space)", as: :string
+  filter :description
+  filter :condition
+  filter :seller_name
+  filter :category
+  filter :quantity_sold
+
+  collection_action :do_report, :method => :post do
+    p params[:from]
+    p params[:to]
+    p params[:category]
     
+    ranges = params[:from].zip(params[:to]).select{|f,t| !f.blank? && !t.blank? }
+    
+    csv_string = CSV.generate do |csv|    
+      items = Item.all.each do |item|
+        r = [item.url, item.name]
+        ranges.each{|f,t|
+          r << (price[t] - price[f])
+          r << (price[t] - price[f])
+        }
+        csv << 1
+      end
+    end
+
+    render text: 'AAA'
+  end
+
+  collection_action :report, :method => :get do
+    @dates = Item.select(:price).map(&:price).inject([]){|a, k| a += k.keys }.uniq
   end
 end

@@ -24,7 +24,24 @@ ActiveAdmin.register Proxy do
         format.html { redirect_to admin_proxies_path }
       end
     end
+
+    def update
+      # do not go to the VIEW page after create
+      update! do |format|
+        format.html { redirect_to admin_proxies_path }
+      end
+    end
   end  
+
+  form do |f|
+    f.inputs Proxy.model_name.human do 
+      f.input :ip
+      f.input :port
+      f.input :username
+      f.input :password, :input_html => { :type => 'text' } 
+      f.actions
+    end
+  end
 
   index do 
     selectable_column

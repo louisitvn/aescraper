@@ -52,6 +52,7 @@ ActiveRecord::Schema.define(version: 20140719132151) do
   create_table "categories", force: true do |t|
     t.string   "name"
     t.string   "url"
+    t.boolean  "with_quantity_sold", default: true
     t.datetime "created_at"
     t.datetime "updated_at"
   end

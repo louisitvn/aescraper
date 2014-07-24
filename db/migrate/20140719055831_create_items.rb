@@ -4,7 +4,12 @@ class CreateItems < ActiveRecord::Migration
       t.text :url
       t.string :number
       t.string :name
+      t.string :condition
+      t.string :seller_name
+      t.string :category
+      t.string :country
       t.text :price
+      t.text :quantity_sold
 
       t.timestamps
     end

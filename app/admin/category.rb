@@ -1,5 +1,5 @@
 ActiveAdmin.register Category do
-  permit_params :name, :url
+  permit_params :name, :url, :with_quantity_sold
   
   # See permitted parameters documentation:
   # https://github.com/gregbell/active_admin/blob/master/docs/2-resource-customization.md#setting-up-strong-parameters
@@ -20,6 +20,7 @@ ActiveAdmin.register Category do
     column :url do |r|
       link_to r.url, r.url
     end
+    column :with_quantity_sold
     column :created_at
   end
 
@@ -30,6 +31,21 @@ ActiveAdmin.register Category do
         format.html { redirect_to admin_categories_path }
       end
     end
+
+    def update
+      # do not go to the VIEW page after create
+      update! do |format|
+        format.html { redirect_to admin_categories_path }
+      end
+    end
   end  
   
+  form do |f|
+    f.inputs Proxy.model_name.human do 
+      f.input :name
+      f.input :url
+      f.input :with_quantity_sold
+      f.actions
+    end
+  end
 end

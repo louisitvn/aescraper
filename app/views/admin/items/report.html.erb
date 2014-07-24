@@ -1,0 +1,129 @@
+<style>
+  label, input, select {
+    display: block;
+    float: left;
+    width: 150px !important;
+    padding: 6px 7px 5px !important;
+  }
+  label {
+    font-weight: bold;
+  }
+  select {
+    border: 1px solid #c9d0d6 !important;
+    border-radius: 3px !important;
+  }
+  h3 {
+    margin: 20px 0px;
+  }
+  div.left, div.right {
+    float: left !important;
+    overflow: auto;
+  }
+  div.left {
+    width: 170px;
+  }
+
+  div.master {
+    clear: both;
+    width: 520px;
+    margin-bottom: 5px;
+    overflow: auto;
+  }
+
+  #container {
+    margin-bottom: 20px;
+  }
+
+</style>
+<%= form_tag(do_report_admin_items_path, method: :post) do %>
+  <div id="container">
+    <div class="master">
+      <div class="left">
+        <%= label_tag("category", "Category") %>
+      </div>
+      <div class="right">
+        <%= select_tag("category", options_from_collection_for_select(Category.all, :id, :name)) %>
+      </div>
+    </div>
+    
+    <div class="master">
+      <div class="left">
+        <%= label_tag("item_name", "Name(s)") %>
+      </div>
+      <div class="right">
+        <%= text_field("item", "name") %>
+      </div>
+    </div>
+
+    <div class="master">
+      <div class="left">
+        <%= label_tag("item_description", "Description") %>
+      </div>
+      <div class="right">
+        <%= text_field("item", "description") %>
+      </div>
+    </div>
+
+    <div class="master">
+      <div class="left">
+        <%= label_tag("item_seller_name", "Seller Name") %>
+      </div>
+      <div class="right">
+        <%= text_field("item", "seller_name") %>
+      </div>
+    </div>
+    <div class="master">
+      <div class="left">
+        <%= label_tag("item_condition", "Condition") %>
+      </div>
+      <div class="right">
+        <%= text_field("item", "condition") %>
+      </div>
+    </div>
+    <div class="master">
+      <div class="left">
+        <%= label_tag("item_category", "Category") %>
+      </div>
+      <div class="right">
+        <%= text_field("item", "category") %>
+      </div>
+    </div>
+  </div>
+
+  <p>
+    <a href="#" id="more" style="text-decoration: none">+ More range</a>
+  </p>
+
+  <br />
+
+  <p>
+    <%= submit_tag("Export") %>
+  </p>
+<% end %>
+
+<script>
+  var Report = {
+    range_count: 1,
+    add_range: function() {
+      var s  = '<div class="master">';
+      s += '  <div class="left">';
+      s += '    <label>Range</label>';
+      s += '  </div>';
+      s += '  <div class="right">';
+      s += '    <%= raw(select_tag("from[]", options_for_select(@dates), include_blank: true).gsub(/[\r\n\s]+/, ' ')) %> <%= raw(select_tag("to[]", options_for_select(@dates), include_blank: true, style: "margin-left: 5px").gsub(/[\r\n\s]+/, ' ')) %>';
+      s += '  </div>';
+      s += '</div>  ';
+
+      $('#container').append(s);
+      return false;
+    }
+  }
+  $(document).ready(function() {
+    Report.add_range();
+
+    $('#more').click(function(){
+      Report.add_range();
+      return false;
+    });
+  });
+</script>

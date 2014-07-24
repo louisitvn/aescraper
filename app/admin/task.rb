@@ -49,7 +49,7 @@ ActiveAdmin.register Task do
       status_tag r.status
     end
     column 'Category' do |r|
-      r.category.name
+      r.category.name if r.category
     end
     column :scraping_date
     column :progress

@@ -35,4 +35,5 @@ class Proxy < ActiveRecord::Base
 
     return [done, failed]
   end
+
 end
