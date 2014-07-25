@@ -1,6 +1,12 @@
 class Item < ActiveRecord::Base
   serialize :price, JSON
   serialize :quantity_sold, JSON
+  serialize :extra, JSON
+  serialize :postage, JSON
+
+  def self.extra_keys
+    all.map(&:extra).inject([]){|k, e| k += e.keys }
+  end
 
   # @deprecated
   ransacker :by_name, formatter: ->(search) {
@@ -19,6 +25,13 @@ class Item < ActiveRecord::Base
     return ranges.values.inject(0.0){|sum, i| i.blank? ? sum : sum += i.to_f}.to_f / ranges.count
   end
 
+  def average_total_price(f, t)
+    # days = (Date.parse(t) - Date.parse(f)).to_i
+    ranges = self.price.select{|k,v| k >= f && k <= t }
+    return 0 if ranges.blank?
+    return ranges.inject(0.0){|sum, i| sum += self.postage[i.first] + i.last}.to_f / ranges.count
+  end
+
   def unit_increase_in_qty_sold(f, t)
     return 'N/A' if self.quantity_sold[f].blank? or self.quantity_sold[t].blank?
     return self.quantity_sold[t].to_f - self.quantity_sold[f].to_f
@@ -34,6 +47,18 @@ class Item < ActiveRecord::Base
     return 'N/A' if self.price[f].blank? or self.price[t].blank?
     return 'N/A' if self.price[f].to_f == 0.0
     return ((self.price[t].to_f - self.price[f].to_f) * 100.0 / self.price[f].to_f).round(2)
+  end
+
+  def percentage_increase_in_total_price(f, t)
+    return 'N/A' if self.price[f].blank? or self.price[t].blank?
+    return 'N/A' if self.price[f].to_f == 0.0
+    return ((self.total_price(t) - self.total_price(f)) * 100.0 / self.total_price(f)).round(2)
+  end
+
+  def total_price(d)
+    self.price[d] + self.postage[d]
+  rescue Exception => ex
+    0.0
   end
 
   def self.filter(params)

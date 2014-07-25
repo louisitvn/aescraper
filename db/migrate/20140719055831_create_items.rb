@@ -14,6 +14,8 @@ class CreateItems < ActiveRecord::Migration
       t.text :price
       t.float :last_price
       t.text :quantity_sold
+      t.text :extra
+      t.text :postage
 
       t.timestamps
     end

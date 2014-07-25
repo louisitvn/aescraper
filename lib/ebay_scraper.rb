@@ -82,8 +82,9 @@ uri = URI.parse(ENV["DATABASE_URL"])
 
 class String
   def floatify
-    return nil if self.empty?
     return self.strip.gsub(/[^0-9\.]/, '').to_f
+  rescue Exception => exp
+    return 0.0
   end
 end
 
@@ -100,6 +101,8 @@ ActiveRecord::Base.establish_connection(
 class Item < ActiveRecord::Base
   serialize :price, JSON
   serialize :quantity_sold, JSON
+  serialize :extra, JSON
+  serialize :postage, JSON
 end
 
 class Category < ActiveRecord::Base
@@ -251,7 +254,7 @@ class Scrape
       ps = @a.try do |scr|
         scr.get(current_url).parser
       end
-      $task.update_attributes(progress: "Scraping #{count}")
+      $task.update_attributes(progress: "Scraping...")
       item_urls = ps.css('#ResultSetItems > table div.ittl h3 a').map{|a| a.attributes['href'].value }
       
       if item_urls.empty?
@@ -286,6 +289,7 @@ class Scrape
     else
       item = Item.new
       item.price = {}
+      item.postage = {}
       item.quantity_sold = {}
     end
 
@@ -310,9 +314,16 @@ class Scrape
       item.location = ps.css('div.sh-loc').first.xpath('text()').text.strip
       item.quantity_sold[$task.scraping_date] = ps.css('span.qtyTxt > span > a').first.text.gsub(/[^0-9]/, '').to_i if ps.css('span.qtyTxt > span > a').first
       item.feedback = ps.css('span.mbg-l > a').first.text.strip
-      item.price[$task.scraping_date] = ps.css('#mm-saleDscPrc').first.text.gsub(/[^0-9\.]/, '') if ps.css('#mm-saleDscPrc').first
-      item.price[$task.scraping_date] = ps.css('#prcIsum').first.text.gsub(/[^0-9\.]/, '') if ps.css('#prcIsum').first
-      item.last_price = item.price[$task.scraping_date].floatify if item.price[$task.scraping_date]
+      item.price[$task.scraping_date] = ps.css('#mm-saleDscPrc').first.text.floatify if ps.css('#mm-saleDscPrc').first
+      item.price[$task.scraping_date] = ps.css('#prcIsum').first.text.floatify if ps.css('#prcIsum').first
+
+      if item.price[$task.scraping_date]
+        item.postage[$task.scraping_date] = 0.0
+        item.last_price = item.price[$task.scraping_date]
+      end
+
+      item.postage[$task.scraping_date] = ps.css('#fshippingCost > span').first.text.strip.floatify if ps.css('#fshippingCost > span').first
+      item.extra = Hash[ps.css('div.itemAttr div.section td.attrLabels').map{|td| [td.text.strip.gsub(/:$/, ''), td.next_element.text.strip]}]
     elsif ps.css('div').empty?
       item.name = 'something-wrong'
     end

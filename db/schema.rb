@@ -69,7 +69,10 @@ ActiveRecord::Schema.define(version: 20140719132151) do
     t.text     "cat_url"
     t.string   "country"
     t.text     "price"
+    t.float    "last_price"
     t.text     "quantity_sold"
+    t.text     "extra"
+    t.text     "postage"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

@@ -34,15 +34,6 @@ ActiveAdmin.register Item do
       end
     end
   end
-  
-  filter :url
-  filter :name
-  filter :by_name_in, label: "Exact name(s) (separated by space)", as: :string
-  filter :description
-  filter :condition
-  filter :seller_name
-  filter :category
-  filter :quantity_sold
 
   collection_action :do_report, :method => :post do
     items = Item.filter(params[:item])
@@ -55,11 +46,14 @@ ActiveAdmin.register Item do
       }
 
       subheaders = []
+      attrs = items.extra_keys
       ranges.each{|f,t|
         subheaders += ['Average Total Price', 'Unit increase in quantity sold', '% Increase in quantity sold', '% Change in total price']
       }
+      
 
       subheaders += ['Description', 'Category', 'Date Added', 'Seller Name', 'Feedback', 'Number']
+      subheaders += attrs
 
       csv << headers
       csv << subheaders
@@ -80,12 +74,16 @@ ActiveAdmin.register Item do
         r << item.feedback
         r << item.number
 
+        attrs.each { |f|
+          r << item.extra[f]
+        }
+
         csv << r
       end
     end
 
-    #send_data csv_string, :filename => "data-#{Time.now.to_i.to_s}.csv"
-    render :text => items.map{|i| i.number }.to_s
+    send_data csv_string, :filename => "data-#{Time.now.to_i.to_s}.csv"
+    #render :text => items.map{|i| i.number }.to_s
   end
 
   action_item(only: :index) do
