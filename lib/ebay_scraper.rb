@@ -80,6 +80,13 @@ end
 
 uri = URI.parse(ENV["DATABASE_URL"])
 
+class String
+  def floatify
+    return nil if self.empty?
+    return self.strip.gsub(/[^0-9\.]/, '').to_f
+  end
+end
+
 ActiveRecord::Base.establish_connection(
   adapter: 'postgresql',
   database: uri.path.gsub(/^\//, ""),
@@ -92,14 +99,24 @@ ActiveRecord::Base.establish_connection(
 
 class Item < ActiveRecord::Base
   serialize :price, JSON
+  serialize :quantity_sold, JSON
+end
+
+class Category < ActiveRecord::Base
 end
 
 class Task < ActiveRecord::Base
+  belongs_to :category
   RUNNING = 'running'
   DEAD = 'dead'
   DONE = 'done'
   STOPPED = 'stopped'
   FAILED = 'failed'
+
+  def log(msg)
+    self.progress ||= ''
+    self.progress += "#{Time.now.to_s}: #{msg}\n"
+  end
 end
 
 $task = Task.find($options[:task])
@@ -236,6 +253,7 @@ class Scrape
       end
       $task.update_attributes(progress: "Scraping #{count}")
       item_urls = ps.css('#ResultSetItems > table div.ittl h3 a').map{|a| a.attributes['href'].value }
+      
       if item_urls.empty?
         item_urls = ps.css('table.fgdt div.ititle h3 > a.vip').map{|a| a.attributes['href'].value }
       end
@@ -260,8 +278,6 @@ class Scrape
   def get(url)
     item = Item.where(url: url).first
     if item && item.price && item.price[$task.scraping_date]
-      # puts "Already scraped"
-      # puts "--------------------------------------"
       return
     end
 
@@ -270,6 +286,7 @@ class Scrape
     else
       item = Item.new
       item.price = {}
+      item.quantity_sold = {}
     end
 
     resp = @a.try do |scr|
@@ -277,13 +294,25 @@ class Scrape
     end
 
     ps = resp.parser
+    unless ps.css('span.qtyTxt > span > a').first
+      return
+    end
 
     item.url = url
 
     if ps.css('#itemTitle').first
       item.name = ps.css('#itemTitle').first.xpath('text()').text
+      item.number = ps.css('div.u-flL.iti-act-num').first.text.strip
+      item.cat_url = $task.category.url
+      item.condition = ps.css('#vi-itm-cond').text.strip
+      item.category = ps.css('h2 > ul > li').map{|li| li.text.strip}.join(" ")
+      item.seller_name = ps.css('span.mbg-nw').first.text.strip
+      item.location = ps.css('div.sh-loc').first.xpath('text()').text.strip
+      item.quantity_sold[$task.scraping_date] = ps.css('span.qtyTxt > span > a').first.text.gsub(/[^0-9]/, '').to_i if ps.css('span.qtyTxt > span > a').first
+      item.feedback = ps.css('span.mbg-l > a').first.text.strip
       item.price[$task.scraping_date] = ps.css('#mm-saleDscPrc').first.text.gsub(/[^0-9\.]/, '') if ps.css('#mm-saleDscPrc').first
       item.price[$task.scraping_date] = ps.css('#prcIsum').first.text.gsub(/[^0-9\.]/, '') if ps.css('#prcIsum').first
+      item.last_price = item.price[$task.scraping_date].floatify if item.price[$task.scraping_date]
     elsif ps.css('div').empty?
       item.name = 'something-wrong'
     end

@@ -18,6 +18,12 @@ class Task < ActiveRecord::Base
     self.status = NEW
   end
 
+  def update_status!
+    if !self.running? && self.status == RUNNING
+      self.update_attributes(status: STOPPED)
+    end
+  end
+
   def running?
     return false unless self.pid
     begin

@@ -37,30 +37,32 @@
 </style>
 <%= form_tag(do_report_admin_items_path, method: :post) do %>
   <div id="container">
+    <!--
     <div class="master">
       <div class="left">
         <%= label_tag("category", "Category") %>
       </div>
       <div class="right">
-        <%= select_tag("category", options_from_collection_for_select(Category.all, :id, :name)) %>
+        <%= select_tag("item[category]", options_from_collection_for_select(Category.all, :id, :name)) %>
       </div>
     </div>
-    
+    -->
+
     <div class="master">
       <div class="left">
-        <%= label_tag("item_name", "Name(s)") %>
+        <%= label_tag("item_number", "Numbers(s)") %>
       </div>
       <div class="right">
-        <%= text_field("item", "name") %>
+        <%= text_field("item", "numbers") %>
       </div>
     </div>
 
     <div class="master">
       <div class="left">
-        <%= label_tag("item_description", "Description") %>
+        <%= label_tag("item_name", "Name") %>
       </div>
       <div class="right">
-        <%= text_field("item", "description") %>
+        <%= text_field("item", "name") %>
       </div>
     </div>
 
@@ -77,7 +79,7 @@
         <%= label_tag("item_condition", "Condition") %>
       </div>
       <div class="right">
-        <%= text_field("item", "condition") %>
+        <%= select_tag("item[condition]", options_for_select( Item.select('DISTINCT condition').map(&:condition) ), include_blank: true) %>
       </div>
     </div>
     <div class="master">
@@ -85,9 +87,27 @@
         <%= label_tag("item_category", "Category") %>
       </div>
       <div class="right">
-        <%= text_field("item", "category") %>
+        <%= select_tag("item[category]", options_for_select( Item.select('DISTINCT category').map(&:category) ), include_blank: true) %>
       </div>
     </div>
+    <div class="master">
+      <div class="left">
+        <%= label_tag("item_price", "Price") %>
+      </div>
+      <div class="right">
+        <%= text_field("item", "price_min", placeholder: 'Min' ) %> <%= text_field("item", "price_max", style: "margin-left: 5px", placeholder: 'Max') %>
+      </div>
+    </div>
+    <!--
+    <div class="master">
+      <div class="left">
+        <%= label_tag("item_price", "Total Price") %>
+      </div>
+      <div class="right">
+        <%= text_field("item", "total_price_min", placeholder: 'Min' ) %> <%= text_field("item", "total_price_max", style: "margin-left: 5px", placeholder: 'Max') %>
+      </div>
+    </div>
+    -->
   </div>
 
   <p>
@@ -110,11 +130,12 @@
       s += '    <label>Range</label>';
       s += '  </div>';
       s += '  <div class="right">';
-      s += '    <%= raw(select_tag("from[]", options_for_select(@dates), include_blank: true).gsub(/[\r\n\s]+/, ' ')) %> <%= raw(select_tag("to[]", options_for_select(@dates), include_blank: true, style: "margin-left: 5px").gsub(/[\r\n\s]+/, ' ')) %>';
+      s += '    <%= raw(select_tag("item[from][]", options_for_select(@dates), include_blank: true).gsub(/[\r\n\s]+/, ' ')) %> <%= raw(select_tag("item[to][]", options_for_select(@dates), include_blank: true, style: "margin-left: 5px").gsub(/[\r\n\s]+/, ' ')) %>';
       s += '  </div>';
       s += '</div>  ';
 
       $('#container').append(s);
+      Report.range_count += 1;
       return false;
     }
   }

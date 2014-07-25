@@ -16,16 +16,24 @@ ActiveAdmin.register Item do
 
   index do 
     selectable_column
+    column :number do |r|
+      link_to r.number, r.url, target: '_new'
+    end
     column :name
-    column :url
+    column :seller_name
+    column :condition
+    column :category
+    column :feedback
     
     Item.select(:price).map(&:price).inject([]){|a, k| a += k.keys }.uniq.each do |scraping_date|
-      column scraping_date, class: 'text-right' do |r|
+      column(raw("Price<br/>#{scraping_date}"), class: 'text-right') do |r|
         number_to_currency r.price[scraping_date]
+      end
+      column(raw("Qty<br/>#{scraping_date}"), class: 'text-right') do |r|
+        r.quantity_sold[scraping_date]
       end
     end
   end
-
   
   filter :url
   filter :name
@@ -37,24 +45,51 @@ ActiveAdmin.register Item do
   filter :quantity_sold
 
   collection_action :do_report, :method => :post do
-    p params[:from]
-    p params[:to]
-    p params[:category]
+    items = Item.filter(params[:item])
     
-    ranges = params[:from].zip(params[:to]).select{|f,t| !f.blank? && !t.blank? }
-    
-    csv_string = CSV.generate do |csv|    
-      items = Item.all.each do |item|
-        r = [item.url, item.name]
+    ranges = params[:item][:from].zip(params[:item][:to]).select{|f,t| !f.blank? && !t.blank? }
+    csv_string = CSV.generate do |csv|
+      headers = []
+      ranges.each{|f,t|
+        headers += ["Date Range # #{f} - #{t}", nil, nil, nil]
+      }
+
+      subheaders = []
+      ranges.each{|f,t|
+        subheaders += ['Average Total Price', 'Unit increase in quantity sold', '% Increase in quantity sold', '% Change in total price']
+      }
+
+      subheaders += ['Description', 'Category', 'Date Added', 'Seller Name', 'Feedback', 'Number']
+
+      csv << headers
+      csv << subheaders
+
+      items.each do |item|
+        r = []
         ranges.each{|f,t|
-          r << (price[t] - price[f])
-          r << (price[t] - price[f])
+          r << item.average_price(f, t)
+          r << item.unit_increase_in_qty_sold(f, t)
+          r << item.percentage_increase_in_qty_sold(f, t)
+          r << item.percentage_increase_in_price(f, t)
         }
-        csv << 1
+
+        r << item.name # name = descrpition
+        r << item.category
+        r << item.created_at
+        r << item.seller_name
+        r << item.feedback
+        r << item.number
+
+        csv << r
       end
     end
 
-    render text: 'AAA'
+    #send_data csv_string, :filename => "data-#{Time.now.to_i.to_s}.csv"
+    render :text => items.map{|i| i.number }.to_s
+  end
+
+  action_item(only: :index) do
+    link_to "Export To CSV", report_admin_items_path
   end
 
   collection_action :report, :method => :get do

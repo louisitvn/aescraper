@@ -54,6 +54,7 @@ ActiveAdmin.register Task do
     column :scraping_date
     column :progress
     column 'Action' do |r|
+      r.update_status!
       if r.running?
         link_to 'Stop', stop_admin_task_path(r), method: :get
       else
