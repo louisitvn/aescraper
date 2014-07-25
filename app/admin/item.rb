@@ -46,7 +46,7 @@ ActiveAdmin.register Item do
       }
 
       subheaders = []
-      attrs = items.extra_keys
+      attrs = items.extra_keys.uniq
       ranges.each{|f,t|
         subheaders += ['Average Total Price', 'Unit increase in quantity sold', '% Increase in quantity sold', '% Change in total price']
       }
@@ -61,10 +61,10 @@ ActiveAdmin.register Item do
       items.each do |item|
         r = []
         ranges.each{|f,t|
-          r << item.average_price(f, t)
+          r << item.average_total_price(f, t)
           r << item.unit_increase_in_qty_sold(f, t)
           r << item.percentage_increase_in_qty_sold(f, t)
-          r << item.percentage_increase_in_price(f, t)
+          r << item.percentage_increase_in_total_price(f, t)
         }
 
         r << item.name # name = descrpition
