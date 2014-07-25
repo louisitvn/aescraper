@@ -4,7 +4,9 @@ require 'optparse'
 require 'rubygems'
 require 'active_record'
 require 'mechanize'
+require 'logger'
 
+$logger = Logger.new('/tmp/scraper.log', 0, 10*1024*1024)
 $options = {}
 parser = OptionParser.new("", 24) do |opts|
   opts.banner = "\nScraper 1.0\nAuthor: Louis (Skype: louisprm)\n\n"
@@ -256,7 +258,6 @@ class Scrape
       end
       $task.update_attributes(progress: "Scraping...")
       item_urls = ps.css('#ResultSetItems > table div.ittl h3 a').map{|a| a.attributes['href'].value }
-      
       if item_urls.empty?
         item_urls = ps.css('table.fgdt div.ititle h3 > a.vip').map{|a| a.attributes['href'].value }
       end
@@ -279,6 +280,7 @@ class Scrape
   end
 
   def get(url)
+    $logger.info(url)
     item = Item.where(url: url).first
     if item && item.price && item.price[$task.scraping_date]
       return
@@ -342,6 +344,7 @@ catch :ctrl_c do
     e.run($options[:url])
     $task.update_attributes(status: Task::DONE, progress: '100%')
   rescue Exception => ex
-    $task.update_attributes(status: Task::FAILED, progress: ex.message)
+    $task.update_attributes(status: Task::FAILED, progress: 'Something went wrong, please check your proxies')
+    $logger.error(ex.message + ex.backtrace.join("\r\n"))
   end
 end
