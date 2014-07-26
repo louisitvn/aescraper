@@ -315,7 +315,7 @@ class Scrape
       item.name = ps.css('#itemTitle').first.xpath('text()').text
       item.number = ps.css('div.u-flL.iti-act-num').first.text.strip
       item.cat_url = $task.category.url
-      item.condition = ps.css('#vi-itm-cond').text.strip
+      item.condition = ps.css('#vi-itm-cond').first.text.strip if ps.css('#vi-itm-cond').first
       item.category = ps.css('h2 > ul > li').map{|li| li.text.strip}.join(" ")
       item.seller_name = ps.css('span.mbg-nw').first.text.strip
       item.location = ps.css('div.sh-loc').first.xpath('text()').text.strip if ps.css('div.sh-loc').first
