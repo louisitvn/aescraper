@@ -9,14 +9,14 @@ class Item < ActiveRecord::Base
   end
 
   # @deprecated
-  ransacker :by_name, formatter: ->(search) {
-    search = search.downcase.split(/\s+/)
+  #ransacker :by_name, formatter: ->(search) {
+  #  search = search.downcase.split(/\s+/)
 
-    data = Item.where('lower(name) IN (?)', search).all.map(&:id)
-    data = data.any? ? data : nil
-  } do |parent|
-    parent.table[:id]
-  end
+  #  data = Item.where('lower(name) IN (?)', search).all.map(&:id)
+  #  data = data.any? ? data : nil
+  #} do |parent|
+  #  parent.table[:id]
+  #end
 
   def average_price(f, t)
     # days = (Date.parse(t) - Date.parse(f)).to_i
