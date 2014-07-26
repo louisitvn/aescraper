@@ -318,9 +318,9 @@ class Scrape
       item.condition = ps.css('#vi-itm-cond').text.strip
       item.category = ps.css('h2 > ul > li').map{|li| li.text.strip}.join(" ")
       item.seller_name = ps.css('span.mbg-nw').first.text.strip
-      item.location = ps.css('div.sh-loc').first.xpath('text()').text.strip
+      item.location = ps.css('div.sh-loc').first.xpath('text()').text.strip if ps.css('div.sh-loc').first
       item.quantity_sold[$task.scraping_date] = ps.css('span.qtyTxt > span > a').first.text.gsub(/[^0-9]/, '').to_i if ps.css('span.qtyTxt > span > a').first
-      item.feedback = ps.css('span.mbg-l > a').first.text.strip
+      item.feedback = ps.css('span.mbg-l > a').first.text.strip if ps.css('span.mbg-l > a').first
       item.price[$task.scraping_date] = ps.css('#mm-saleDscPrc').first.text.floatify if ps.css('#mm-saleDscPrc').first
       item.price[$task.scraping_date] = ps.css('#prcIsum').first.text.floatify if ps.css('#prcIsum').first
 
@@ -350,6 +350,5 @@ catch :ctrl_c do
     $task.update_attributes(status: Task::DONE, progress: '100%')
   rescue Exception => ex
     $task.update_attributes(status: Task::FAILED, progress: "Something went wrong, please check your proxies\r\nBacktrace:\r\n" + ex.backtrace.join("\r\n"))
-    $logger.error(ex.message + ex.backtrace.join("\r\n"))
   end
 end
