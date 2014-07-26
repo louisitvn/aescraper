@@ -349,6 +349,6 @@ catch :ctrl_c do
     e.run($options[:url])
     $task.update_attributes(status: Task::DONE, progress: '100%')
   rescue Exception => ex
-    $task.update_attributes(status: Task::FAILED, progress: "Something went wrong, please check your proxies\r\nBacktrace:\r\n" + ex.backtrace.join("\r\n"))
+    $task.update_attributes(status: Task::FAILED, progress: "Something went wrong, please check your proxies\r\n#{ex.message}\r\nBacktrace:\r\n" + ex.backtrace.join("\r\n"))
   end
 end
