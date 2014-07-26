@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140719132151) do
+ActiveRecord::Schema.define(version: 20140726045501) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -61,13 +61,13 @@ ActiveRecord::Schema.define(version: 20140719132151) do
     t.text     "url"
     t.string   "number"
     t.string   "name"
-    t.string   "condition"
-    t.string   "seller_name"
-    t.string   "location"
-    t.string   "feedback"
-    t.string   "category"
+    t.text     "condition"
+    t.text     "seller_name"
+    t.text     "location"
+    t.text     "feedback"
+    t.text     "category"
     t.text     "cat_url"
-    t.string   "country"
+    t.text     "country"
     t.text     "price"
     t.float    "last_price"
     t.text     "quantity_sold"
@@ -89,11 +89,18 @@ ActiveRecord::Schema.define(version: 20140719132151) do
     t.datetime "updated_at"
   end
 
+  create_table "settings", force: true do |t|
+    t.string   "name"
+    t.integer  "value"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "tasks", force: true do |t|
     t.string   "pid"
     t.string   "status"
     t.string   "scraping_date"
-    t.string   "progress"
+    t.text     "progress"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "category_id"

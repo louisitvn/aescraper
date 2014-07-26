@@ -84,6 +84,14 @@
     </div>
     <div class="master">
       <div class="left">
+        <%= label_tag("item_listing", "Category (Listing)") %>
+      </div>
+      <div class="right">
+        <%= select_tag("item[listing]", options_for_select( Category.select('DISTINCT name, url').map{|c| [c.name, c.url] } ), include_blank: true) %>
+      </div>
+    </div>
+    <div class="master">
+      <div class="left">
         <%= label_tag("item_category", "Category") %>
       </div>
       <div class="right">

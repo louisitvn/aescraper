@@ -62,15 +62,16 @@ class Item < ActiveRecord::Base
   end
 
   def self.filter(params)
-    p params
     scope = self.select("*")
     scope = scope.where(number: params[:numbers].split(/[\s+]/)) if !params[:numbers].blank?
     scope = scope.where('name ilike ?', "%#{params[:name]}%") if !params[:name].blank?
+    if !params[:listing].blank?
+      scope = scope.where(cat_url: params[:listing])
+    end
     scope = scope.where('seller_name ilike ?', "%#{params[:seller_name]}%") if !params[:seller_name].blank?
     scope = scope.where(condition: params[:condition]) if !params[:condition].blank?
     scope = scope.where(:last_price => (params[:price_min].to_f..params[:price_max].to_f)) if (!params[:price_min].blank? and !params[:price_max].blank?)
     scope = scope.where(category: params[:category]) if !params[:category].blank?
-
     return scope.all
   end
 end

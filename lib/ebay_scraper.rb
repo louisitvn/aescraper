@@ -17,6 +17,10 @@ parser = OptionParser.new("", 24) do |opts|
     $options[:url] = v
   end
 
+  opts.on("-d", "--delay DELAY", "DELAY in millisecond") do |v|
+    $options[:delay] = v
+  end
+
   opts.on("-t", "--task ID", "") do |v|
     $options[:task] = v
   end
@@ -81,6 +85,9 @@ if $options[:task].nil?
   # puts "\nPlease specify task: -t\n\n"
   exit
 end
+
+$options[:delay] ||= 0
+$options[:delay] = $options[:delay].to_i/1000
 
 uri = URI.parse(ENV["DATABASE_URL"])
 
@@ -336,6 +343,7 @@ class Scrape
     end
     
     item.save
+    sleep $options[:delay]
   end
 end
 

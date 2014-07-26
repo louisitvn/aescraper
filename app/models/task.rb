@@ -51,6 +51,7 @@ class Task < ActiveRecord::Base
       begin
         Process.kill 9, self.pid.to_i
         self.status = STOPPED
+        self.progress = 'Terminated'
         self.save
       rescue Exception => ex
         # @todo what goes here?
@@ -78,7 +79,8 @@ class Task < ActiveRecord::Base
     else
       self.status = RUNNING
       self.save
-      cmd = "ruby #{PATH} -t #{self.id} -u \"#{self.category.url}\""
+      delay = Setting.find_by_name('DELAY').value || 0
+      cmd = "ruby #{PATH} -d #{delay} -t #{self.id} -u \"#{self.category.url}\""
       process = IO.popen(cmd)
       puts cmd, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
       Process.detach(process.pid)

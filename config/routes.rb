@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :settings
+
   resources :categories
 
   resources :proxies

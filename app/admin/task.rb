@@ -22,15 +22,6 @@ ActiveAdmin.register Task do
     end
   end
 
-  controller do 
-    def create
-      # do not go to the VIEW page after create
-      create! do |format|
-        format.html { redirect_to admin_tasks_path }
-      end
-    end
-  end  
-
   member_action :stop, :method => :get do
     t = Task.find(params[:id])
     t.stop!
@@ -45,6 +36,9 @@ ActiveAdmin.register Task do
 
   index do 
     selectable_column
+    column '' do |r|
+      link_to 'EDIT', edit_admin_task_path(r)
+    end
     column :status, sortable: :status do |r|
       status_tag r.status
     end
@@ -60,6 +54,7 @@ ActiveAdmin.register Task do
       else
         link_to 'Start', start_admin_task_path(r), method: :get
       end
+      
     end
   end
 end
