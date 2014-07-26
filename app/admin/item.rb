@@ -25,7 +25,7 @@ ActiveAdmin.register Item do
     column :category
     column :feedback
     
-    Item.select(:price).map(&:price).inject([]){|a, k| a += k.keys }.uniq.each do |scraping_date|
+    Item.select(:price).map(&:price).inject([]){|a, k| a += k.keys }.uniq.sort.each do |scraping_date|
       column(raw("Price<br/>#{scraping_date}"), class: 'text-right') do |r|
         number_to_currency r.price[scraping_date]
       end
