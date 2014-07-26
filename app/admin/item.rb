@@ -91,6 +91,6 @@ ActiveAdmin.register Item do
   end
 
   collection_action :report, :method => :get do
-    @dates = Item.select(:price).map(&:price).inject([]){|a, k| a += k.keys }.uniq
+    @dates = Item.select(:price).map(&:price).inject([]){|a, k| a += k.keys }.uniq.sort.reverse
   end
 end

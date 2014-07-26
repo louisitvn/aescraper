@@ -79,7 +79,7 @@
         <%= label_tag("item_condition", "Condition") %>
       </div>
       <div class="right">
-        <%= select_tag("item[condition]", options_for_select( Item.select('DISTINCT condition').map(&:condition) ), include_blank: true) %>
+        <%= select_tag("item[condition]", options_for_select( Item.select('DISTINCT condition').order('condition ASC').map(&:condition) ), include_blank: true) %>
       </div>
     </div>
     <div class="master">
@@ -87,7 +87,7 @@
         <%= label_tag("item_listing", "Category (Listing)") %>
       </div>
       <div class="right">
-        <%= select_tag("item[listing]", options_for_select( Category.select('DISTINCT name, url').map{|c| [c.name, c.url] } ), include_blank: true) %>
+        <%= select_tag("item[listing]", options_for_select( Category.select('DISTINCT name, url').order('name ASC').map{|c| [c.name, c.url] } ), include_blank: true) %>
       </div>
     </div>
     <div class="master">
@@ -95,7 +95,7 @@
         <%= label_tag("item_category", "Category") %>
       </div>
       <div class="right">
-        <%= select_tag("item[category]", options_for_select( Item.select('DISTINCT category').map(&:category) ), include_blank: true) %>
+        <%= select_tag("item[category]", options_for_select( Item.select('DISTINCT category').order('category ASC').map(&:category) ), include_blank: true) %>
       </div>
     </div>
     <div class="master">
